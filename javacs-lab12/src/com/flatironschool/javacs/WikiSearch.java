@@ -16,7 +16,7 @@ import redis.clients.jedis.Jedis;
  * Represents the results of a search query.
  *
  */
-public class WikiSearch {
+public class WikiSearch{
 	
 	// map from URLs that contain the term(s) to relevance score
 	private Map<String, Integer> map;
@@ -46,7 +46,7 @@ public class WikiSearch {
 	 * 
 	 * @param map
 	 */
-	private  void print() {
+	private void print() {
 		List<Entry<String, Integer>> entries = sort();
 		for (Entry<String, Integer> entry: entries) {
 			System.out.println(entry);
@@ -60,8 +60,19 @@ public class WikiSearch {
 	 * @return New WikiSearch object.
 	 */
 	public WikiSearch or(WikiSearch that) {
-        // FILL THIS IN!
-		return null;
+        Map<String, Integer> orMap = new HashMap<String, Integer>();
+        for (Map.Entry<String, Integer> entry: map.entrySet()){
+        	orMap.put(entry.getKey(), entry.getValue());
+        }
+        for (Map.Entry<String, Integer> entry: that.map.entrySet()){
+        	if (orMap.containsKey(entry.getKey())){
+        		Integer oldVal = orMap.get(entry.getKey());
+        		orMap.put(entry.getKey(), entry.getValue() + oldVal);
+        	} else {
+        		orMap.put(entry.getKey(), entry.getValue());
+        	}
+        }
+		return new WikiSearch(orMap);
 	}
 	
 	/**
@@ -71,8 +82,13 @@ public class WikiSearch {
 	 * @return New WikiSearch object.
 	 */
 	public WikiSearch and(WikiSearch that) {
-        // FILL THIS IN!
-		return null;
+        Map<String, Integer> andMap = new HashMap<String, Integer>();
+        for (Map.Entry<String, Integer> entry: map.entrySet()){
+        	if (that.map.containsKey(entry.getKey())){
+        		andMap.put(entry.getKey(), entry.getValue() + that.map.get(entry.getKey()));
+        	}
+        }
+		return new WikiSearch(andMap);
 	}
 	
 	/**
@@ -82,8 +98,13 @@ public class WikiSearch {
 	 * @return New WikiSearch object.
 	 */
 	public WikiSearch minus(WikiSearch that) {
-        // FILL THIS IN!
-		return null;
+        Map<String, Integer> minusMap = new HashMap<String, Integer>();
+        for (Map.Entry<String, Integer> entry: map.entrySet()){
+        	if (!that.map.containsKey(entry.getKey())){
+        		minusMap.put(entry.getKey(), entry.getValue());
+        	}
+        }
+		return new WikiSearch(minusMap);
 	}
 	
 	/**
@@ -104,8 +125,14 @@ public class WikiSearch {
 	 * @return List of entries with URL and relevance.
 	 */
 	public List<Entry<String, Integer>> sort() {
-        // FILL THIS IN!
-		return null;
+		List<Entry<String, Integer>> list = new LinkedList<Map.Entry<String, Integer>>(map.entrySet());
+		Comparator<Entry<String, Integer>> comparator = new Comparator<Entry<String, Integer>>(){
+			public int compare(Entry<String, Integer> one, Entry<String, Integer> two){
+				return (one.getValue()).compareTo(two.getValue());
+			}
+		};
+		Collections.sort(list, comparator);
+        return list;
 	}
 
 	/**
